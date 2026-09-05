@@ -3,9 +3,9 @@ from mould_costing.data.chart_loader import ChartLoader
 
 
 def calculate(chart_loader: ChartLoader, type_: str, diameter: float, length: float) -> LineResult:
-    df = chart_loader.get("BushPin")
+    df = chart_loader.get("GuideBush")
     if df is None:
-        raise LookupMissError("Bush Pin chart is not loaded.")
+        raise LookupMissError("Guide Bush chart is not loaded.")
 
     match = df[
         (df["Type"].astype(str) == str(type_))
@@ -14,7 +14,7 @@ def calculate(chart_loader: ChartLoader, type_: str, diameter: float, length: fl
     ]
     if match.empty:
         raise LookupMissError(
-            f"No chart match for Bush Pin Type={type_}, Ø{diameter}, L={length}"
+            f"No chart match for Guide Bush Type={type_}, Ø{diameter}, L={length}"
         )
 
     row = match.iloc[0]

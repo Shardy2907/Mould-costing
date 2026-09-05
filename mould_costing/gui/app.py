@@ -5,7 +5,7 @@ from mould_costing import config
 from mould_costing.data.chart_loader import ChartLoader, ChartLoadError
 from mould_costing.export.excel_export import export_summary
 from mould_costing.gui.bolt_frame import BoltFrame
-from mould_costing.gui.bush_pin_frame import BushPinFrame
+from mould_costing.gui.guide_bush_frame import GuideBushFrame
 from mould_costing.gui.guide_pin_frame import GuidePinFrame
 from mould_costing.gui.plate_frame import PlateFrame
 from mould_costing.gui.return_pin_frame import ReturnPinFrame
@@ -30,14 +30,14 @@ class App(tk.Tk):
             self.rowconfigure(row, weight=1, uniform="row")
 
         self.guide_pin_frame = GuidePinFrame(self, self.chart_loader, self._on_change)
-        self.bush_pin_frame = BushPinFrame(self, self.chart_loader, self._on_change)
+        self.guide_bush_frame = GuideBushFrame(self, self.chart_loader, self._on_change)
         self.return_pin_frame = ReturnPinFrame(self, self.chart_loader, self._on_change)
         self.bolt_frame = BoltFrame(self, self.chart_loader, self._on_change)
         self.plate_frame = PlateFrame(self, self.chart_loader, self._on_change)
         self.total_panel = TotalPanel(self, self._on_load_chart, self._on_export)
 
         self.guide_pin_frame.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
-        self.bush_pin_frame.grid(row=0, column=1, sticky="nsew", padx=6, pady=6)
+        self.guide_bush_frame.grid(row=0, column=1, sticky="nsew", padx=6, pady=6)
         self.return_pin_frame.grid(row=0, column=2, sticky="nsew", padx=6, pady=6)
         self.bolt_frame.grid(row=1, column=0, sticky="nsew", padx=6, pady=6)
         self.total_panel.grid(row=1, column=1, sticky="nsew", padx=6, pady=6)
@@ -45,7 +45,7 @@ class App(tk.Tk):
 
         self.sections = [
             self.guide_pin_frame,
-            self.bush_pin_frame,
+            self.guide_bush_frame,
             self.return_pin_frame,
             self.bolt_frame,
             self.plate_frame,

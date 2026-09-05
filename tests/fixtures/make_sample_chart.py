@@ -22,11 +22,11 @@ def build() -> None:
     guide_pin.append(["B", 12, 18, 50, 0.6, 140.0])
     guide_pin.append(["C", 16, 22, 100, 1.0, 200.0])
 
-    bush_pin = wb.create_sheet("BushPin")
-    bush_pin.append(["Type", "Diameter", "OtherDiameter", "TotalLength", "Hours", "Cost"])
-    bush_pin.append(["A", 10, 16, 50, 0.4, 90.0])
-    bush_pin.append(["A", 10, 16, 100, 0.6, 130.0])
-    bush_pin.append(["B", 12, 18, 50, 0.5, 110.0])
+    guide_bush = wb.create_sheet("GuideBush")
+    guide_bush.append(["Type", "Diameter", "OtherDiameter", "TotalLength", "Hours", "Cost"])
+    guide_bush.append(["A", 10, 16, 50, 0.4, 90.0])
+    guide_bush.append(["A", 10, 16, 100, 0.6, 130.0])
+    guide_bush.append(["B", 12, 18, 50, 0.5, 110.0])
 
     return_pin = wb.create_sheet("ReturnPin")
     return_pin.append(["D1", "Length", "Rate"])

@@ -1,15 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
 
-from mould_costing.calculators import bush_pin
+from mould_costing.calculators import guide_bush
 from mould_costing.gui.section_frame import SectionFrame
 
 
-class BushPinFrame(SectionFrame):
+class GuideBushFrame(SectionFrame):
     def __init__(self, parent, chart_loader, on_change):
         super().__init__(
             parent,
-            "Bush Pin",
+            "Guide Bush",
             ["Type", "Ø", "Length"],
             chart_loader,
             on_change,
@@ -33,7 +33,7 @@ class BushPinFrame(SectionFrame):
         ttk.Entry(frame, textvariable=self.length_var, width=10).grid(row=2, column=1, sticky="w")
 
     def refresh_chart(self) -> None:
-        types = self.chart_loader.unique_values("BushPin", "Type", ["A", "B", "C"])
+        types = self.chart_loader.unique_values("GuideBush", "Type", ["A", "B", "C"])
         self.type_combo["values"] = types
         if self.type_var.get() not in types:
             self.type_var.set(types[0])
@@ -49,6 +49,6 @@ class BushPinFrame(SectionFrame):
         except ValueError:
             raise ValueError("Total Length must be a number.")
 
-        result = bush_pin.calculate(self.chart_loader, type_, diameter, length)
+        result = guide_bush.calculate(self.chart_loader, type_, diameter, length)
         values = {"Type": type_, "Ø": diameter, "Length": length}
         return values, result.unit_cost
