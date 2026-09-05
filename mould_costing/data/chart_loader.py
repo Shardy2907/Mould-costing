@@ -4,7 +4,7 @@ import pandas as pd
 
 REQUIRED_SHEETS: dict[str, list[str]] = {
     "GuidePin": ["Type", "MainDiameter", "OtherDiameter", "TotalLength", "Hours", "Cost"],
-    "BushPin": ["Type", "Diameter", "OtherDiameter", "TotalLength", "Hours", "Cost"],
+    "GuideBush": ["Type", "Diameter", "OtherDiameter", "TotalLength", "Hours", "Cost"],
     "ReturnPin": ["D1", "Length", "Rate"],
     "Bolts": ["D1", "Length", "Rate"],
     "Plates": ["Material", "Density", "Rate"],
