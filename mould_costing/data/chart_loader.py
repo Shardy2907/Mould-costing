@@ -1,14 +1,49 @@
 """Loads the standardized cost-chart workbook into per-sheet DataFrames."""
 
+import re
+
 import pandas as pd
 
 REQUIRED_SHEETS: dict[str, list[str]] = {
-    "GuidePin": ["Type", "MainDiameter", "OtherDiameter", "TotalLength", "Hours", "Cost"],
-    "GuideBush": ["Type", "Diameter", "OtherDiameter", "TotalLength", "Hours", "Cost"],
+    "GuidePin": ["Type", "Diameter C", "Diameter F", "Diameter G", "Length", "Total Cost"],
+    "GuideBush": ["Type", "Diameter C", "Diameter D", "Diameter E", "Length", "Total Cost"],
     "ReturnPin": ["D1", "Length", "Rate"],
     "Bolts": ["D1", "Length", "Rate"],
-    "Plates": ["Material", "Density", "Rate"],
+    "DowellingSleeve": ["D1", "Length", "Rate"],
+    "HookStrip": ["W", "T", "Length", "Rate"],
+    "EjectorGuidePin": ["D1", "Length", "Rate"],
+    "EjectorGuideBush": ["D1", "Length", "Rate"],
+    "LocatingRing": ["D1", "thickness", "cost"],
 }
+
+
+def _natural_sort_key(value: str):
+    match = re.search(r"(\d+)$", value)
+    if match:
+        return (value[: match.start()], int(match.group(1)))
+    return (value, -1)
+
+
+def format_value(value) -> str:
+    try:
+        as_float = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if as_float.is_integer():
+        return str(int(as_float))
+    return str(as_float)
+
+
+def column_matches(series: pd.Series, value) -> pd.Series:
+    """Compares a chart column to a value, using numeric or string equality
+    depending on the column's own dtype (so a dropdown-selected string like
+    "25" still matches a numeric 25.0 chart cell)."""
+    if pd.api.types.is_numeric_dtype(series):
+        try:
+            return series.astype(float) == float(value)
+        except (TypeError, ValueError):
+            return pd.Series(False, index=series.index)
+    return series.astype(str) == str(value)
 
 
 class ChartLoadError(Exception):
@@ -54,7 +89,12 @@ class ChartLoader:
         self.path = path
         self.sheets = sheets
         for callback in self._listeners:
-            callback()
+            try:
+                callback()
+            except Exception:
+                import traceback
+
+                traceback.print_exc()
 
     def is_loaded(self) -> bool:
         return bool(self.sheets)
@@ -66,5 +106,21 @@ class ChartLoader:
         df = self.get(sheet_name)
         if df is None or column not in df.columns:
             return fallback
-        values = sorted(str(v) for v in df[column].dropna().unique())
+        values = sorted({format_value(v) for v in df[column].dropna().unique()}, key=_natural_sort_key)
+        return values or fallback
+
+    def filtered_unique_values(
+        self, sheet_name: str, column: str, filters: dict, fallback: list[str]
+    ) -> list[str]:
+        """Like unique_values, but restricted to rows matching `filters`
+        (other column -> currently-selected-value pairs), for cascading dropdowns."""
+        df = self.get(sheet_name)
+        if df is None or column not in df.columns:
+            return fallback
+        subset = df
+        for filter_column, filter_value in filters.items():
+            if filter_column not in subset.columns or not filter_value:
+                continue
+            subset = subset[column_matches(subset[filter_column], filter_value)]
+        values = sorted({format_value(v) for v in subset[column].dropna().unique()}, key=_natural_sort_key)
         return values or fallback

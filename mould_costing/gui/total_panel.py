@@ -3,7 +3,7 @@ from tkinter import ttk
 
 
 class TotalPanel(ttk.LabelFrame):
-    def __init__(self, parent, on_load_chart, on_export):
+    def __init__(self, parent, on_load_chart, on_export, on_clear_all):
         super().__init__(parent, text="Mould Cost Summary", padding=12)
 
         self.chart_status_var = tk.StringVar(value="No chart loaded")
@@ -17,6 +17,7 @@ class TotalPanel(ttk.LabelFrame):
 
         ttk.Button(self, text="Load Chart File...", command=on_load_chart).pack(fill="x", pady=2)
         ttk.Button(self, text="Export Summary...", command=on_export).pack(fill="x", pady=2)
+        ttk.Button(self, text="Clear All", command=on_clear_all).pack(fill="x", pady=2)
 
     def set_total(self, value: float) -> None:
         self.total_var.set(f"{value:,.2f}")

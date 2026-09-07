@@ -8,30 +8,48 @@ from mould_costing.data.chart_loader import ChartLoader
 
 
 class SectionFrame(ttk.LabelFrame):
-    def __init__(self, parent, title: str, item_columns: list[str], chart_loader: ChartLoader, on_change):
+    def __init__(
+        self,
+        parent,
+        title: str,
+        item_columns: list[str],
+        chart_loader: ChartLoader,
+        on_change,
+        default_qty: int = 1,
+        fixed_qty: int | None = None,
+    ):
         super().__init__(parent, text=title, padding=8)
         self.title = title
         self.item_columns = item_columns
         self.full_columns = item_columns + ["Qty", "Unit Cost", "Total"]
         self.chart_loader = chart_loader
         self.on_change = on_change
+        self.fixed_qty = fixed_qty
         self.items: list[dict] = []
+        self._editing_index: int | None = None
 
-        self._build_ui()
+        self._build_ui(default_qty)
         self.chart_loader.on_reload(self.refresh_chart)
 
-    def _build_ui(self) -> None:
+    def _build_ui(self, default_qty: int) -> None:
         inputs_frame = ttk.Frame(self)
         inputs_frame.pack(fill="x")
         self.build_inputs(inputs_frame)
 
         qty_frame = ttk.Frame(self)
         qty_frame.pack(fill="x", pady=(4, 0))
-        ttk.Label(qty_frame, text="Qty:").pack(side="left")
-        self.qty_var = tk.StringVar(value="1")
-        ttk.Entry(qty_frame, textvariable=self.qty_var, width=6).pack(side="left", padx=(4, 0))
-        ttk.Button(qty_frame, text="Add", command=self._on_add).pack(side="left", padx=(8, 0))
+        if self.fixed_qty is None:
+            ttk.Label(qty_frame, text="Qty:").pack(side="left")
+            self.qty_var = tk.StringVar(value=str(default_qty))
+            ttk.Entry(qty_frame, textvariable=self.qty_var, width=6).pack(side="left", padx=(4, 0))
+        else:
+            self.qty_var = tk.StringVar(value=str(self.fixed_qty))
+            ttk.Label(qty_frame, text=f"Qty: {self.fixed_qty} (fixed)").pack(side="left")
+        self.add_button = ttk.Button(qty_frame, text="Add", command=self._on_add)
+        self.add_button.pack(side="left", padx=(8, 0))
+        ttk.Button(qty_frame, text="Edit Selected", command=self._on_edit).pack(side="left", padx=(4, 0))
         ttk.Button(qty_frame, text="Remove Selected", command=self._on_remove).pack(side="left", padx=(4, 0))
+        ttk.Button(qty_frame, text="Clear", command=self.clear).pack(side="left", padx=(4, 0))
 
         self.status_var = tk.StringVar(value="")
         ttk.Label(self, textvariable=self.status_var, foreground="red", wraplength=220).pack(fill="x")
@@ -54,6 +72,10 @@ class SectionFrame(ttk.LabelFrame):
         """Return (display values for item_columns, unit_cost). Raise LookupMissError/ValueError on bad input."""
         raise NotImplementedError
 
+    def populate_inputs(self, item: dict) -> None:
+        """Subclasses override to load a stored item's values back into the input widgets for editing."""
+        raise NotImplementedError
+
     def refresh_chart(self) -> None:
         """Subclasses override to repopulate chart-driven dropdowns after a reload."""
 
@@ -62,6 +84,11 @@ class SectionFrame(ttk.LabelFrame):
 
     def _clear_status(self) -> None:
         self.status_var.set("")
+
+    def _cancel_edit(self) -> None:
+        if self._editing_index is not None:
+            self._editing_index = None
+            self.add_button.config(text="Add")
 
     def _on_add(self) -> None:
         try:
@@ -81,15 +108,37 @@ class SectionFrame(ttk.LabelFrame):
             self._set_status(f"Invalid input: {exc}")
             return
 
-        total = unit_cost * qty
         item = dict(values)
         item["Qty"] = qty
         item["Unit Cost"] = round(unit_cost, 2)
-        item["Total"] = round(total, 2)
-        self.items.append(item)
-        self.tree.insert("", "end", values=[item.get(c, "") for c in self.full_columns])
+        item["Total"] = round(unit_cost * qty, 2)
+        row_values = [item.get(c, "") for c in self.full_columns]
+
+        if self._editing_index is not None:
+            idx = self._editing_index
+            self.items[idx] = item
+            iid = self.tree.get_children()[idx]
+            self.tree.item(iid, values=row_values)
+            self._cancel_edit()
+        else:
+            self.items.append(item)
+            self.tree.insert("", "end", values=row_values)
+
         self._clear_status()
         self._recalc()
+
+    def _on_edit(self) -> None:
+        selected = self.tree.selection()
+        if not selected:
+            return
+        idx = self.tree.index(selected[0])
+        item = self.items[idx]
+        self.populate_inputs(item)
+        if self.fixed_qty is None:
+            self.qty_var.set(str(item["Qty"]))
+        self._editing_index = idx
+        self.add_button.config(text="Update")
+        self._clear_status()
 
     def _on_remove(self) -> None:
         selected = self.tree.selection()
@@ -99,6 +148,15 @@ class SectionFrame(ttk.LabelFrame):
             idx = self.tree.index(iid)
             del self.items[idx]
             self.tree.delete(iid)
+        self._cancel_edit()
+        self._recalc()
+
+    def clear(self) -> None:
+        self.items.clear()
+        for iid in self.tree.get_children():
+            self.tree.delete(iid)
+        self._cancel_edit()
+        self._clear_status()
         self._recalc()
 
     def _recalc(self) -> None:

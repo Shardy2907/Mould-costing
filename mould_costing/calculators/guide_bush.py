@@ -1,3 +1,5 @@
+import pandas as pd
+
 from mould_costing.calculators import LineResult, LookupMissError
 from mould_costing.data.chart_loader import ChartLoader
 
@@ -9,8 +11,8 @@ def calculate(chart_loader: ChartLoader, type_: str, diameter: float, length: fl
 
     match = df[
         (df["Type"].astype(str) == str(type_))
-        & (df["Diameter"].astype(float) == float(diameter))
-        & (df["TotalLength"].astype(float) == float(length))
+        & (df["Diameter C"].astype(float) == float(diameter))
+        & (df["Length"].astype(float) == float(length))
     ]
     if match.empty:
         raise LookupMissError(
@@ -18,10 +20,15 @@ def calculate(chart_loader: ChartLoader, type_: str, diameter: float, length: fl
         )
 
     row = match.iloc[0]
+    if pd.isna(row["Total Cost"]):
+        raise LookupMissError(
+            f"Chart has no Total Cost yet for Guide Bush Type={type_}, Ø{diameter}, L={length}"
+        )
+
     return LineResult(
-        unit_cost=float(row["Cost"]),
+        unit_cost=float(row["Total Cost"]),
         extra={
-            "OtherDiameter": row["OtherDiameter"],
-            "Hours": row["Hours"],
+            "DiameterD": row["Diameter D"],
+            "DiameterE": row["Diameter E"],
         },
     )

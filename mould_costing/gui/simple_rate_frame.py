@@ -1,3 +1,6 @@
+"""Reusable D1 -> Length -> Rate section (Return Pin, Dowelling Sleeve,
+Ejector Guide Pin/Bush all share this exact shape)."""
+
 import tkinter as tk
 from tkinter import ttk
 
@@ -5,55 +8,47 @@ from mould_costing.calculators import rate_lookup
 from mould_costing.data.chart_loader import format_value
 from mould_costing.gui.section_frame import SectionFrame
 
-CATEGORY_OPTIONS = [
-    "Cavity housing bolt",
-    "Punch housing",
-    "Ejector plate",
-    "Punch Insert",
-    "Cavity Insert",
-    "Wedge block",
-    "Hook Strip",
-    "Locating Ring",
-    "L-plate",
-    "Return Pin",
-    "Grub Screw",
-]
 
-
-class BoltFrame(SectionFrame):
-    def __init__(self, parent, chart_loader, on_change):
+class SimpleRateFrame(SectionFrame):
+    def __init__(
+        self,
+        parent,
+        title: str,
+        sheet_name: str,
+        chart_loader,
+        on_change,
+        fixed_qty: int | None = None,
+        default_qty: int = 1,
+    ):
+        self.sheet_name = sheet_name
         super().__init__(
             parent,
-            "Bolts",
-            ["Category", "D1", "Length"],
+            title,
+            ["D1", "Length"],
             chart_loader,
             on_change,
+            default_qty=default_qty,
+            fixed_qty=fixed_qty,
         )
 
     def build_inputs(self, frame: ttk.Frame) -> None:
-        self.category_var = tk.StringVar(value=CATEGORY_OPTIONS[0])
         self.d1_var = tk.StringVar()
         self.length_var = tk.StringVar()
 
-        ttk.Label(frame, text="Category:").grid(row=0, column=0, sticky="w")
-        ttk.Combobox(
-            frame, textvariable=self.category_var, values=CATEGORY_OPTIONS, width=20, state="readonly"
-        ).grid(row=0, column=1, sticky="w")
-
-        ttk.Label(frame, text="Size:").grid(row=1, column=0, sticky="w")
+        ttk.Label(frame, text="D1 (mm):").grid(row=0, column=0, sticky="w")
         self.d1_combo = ttk.Combobox(frame, textvariable=self.d1_var, values=[], width=10, state="readonly")
-        self.d1_combo.grid(row=1, column=1, sticky="w")
+        self.d1_combo.grid(row=0, column=1, sticky="w")
 
-        ttk.Label(frame, text="Length (mm):").grid(row=2, column=0, sticky="w")
+        ttk.Label(frame, text="Length (mm):").grid(row=1, column=0, sticky="w")
         self.length_combo = ttk.Combobox(
             frame, textvariable=self.length_var, values=[], width=10, state="readonly"
         )
-        self.length_combo.grid(row=2, column=1, sticky="w")
+        self.length_combo.grid(row=1, column=1, sticky="w")
 
         self.d1_var.trace_add("write", lambda *_args: self._refresh_lengths())
 
     def refresh_chart(self) -> None:
-        d1_values = self.chart_loader.unique_values("Bolts", "D1", [])
+        d1_values = self.chart_loader.unique_values(self.sheet_name, "D1", [])
         self.d1_combo["values"] = d1_values
         if self.d1_var.get() not in d1_values:
             self.d1_var.set(d1_values[0] if d1_values else "")
@@ -62,25 +57,23 @@ class BoltFrame(SectionFrame):
 
     def _refresh_lengths(self) -> None:
         lengths = self.chart_loader.filtered_unique_values(
-            "Bolts", "Length", {"D1": self.d1_var.get()}, []
+            self.sheet_name, "Length", {"D1": self.d1_var.get()}, []
         )
         self.length_combo["values"] = lengths
         if self.length_var.get() not in lengths:
             self.length_var.set(lengths[0] if lengths else "")
 
     def populate_inputs(self, item: dict) -> None:
-        self.category_var.set(item["Category"])
-        self.d1_var.set(item["D1"])
+        self.d1_var.set(format_value(item["D1"]))
         self.length_var.set(format_value(item["Length"]))
 
     def collect_line(self) -> tuple[dict, float]:
         if not self.d1_var.get() or not self.length_var.get():
-            raise ValueError("No matching Size/Length available in the chart.")
+            raise ValueError("No matching D1/Length available in the chart.")
 
-        category = self.category_var.get()
-        d1 = self.d1_var.get()
+        d1 = float(self.d1_var.get())
         length = float(self.length_var.get())
 
-        result = rate_lookup.calculate(self.chart_loader, "Bolts", self.title, D1=d1, Length=length)
-        values = {"Category": category, "D1": d1, "Length": length}
+        result = rate_lookup.calculate(self.chart_loader, self.sheet_name, self.title, D1=d1, Length=length)
+        values = {"D1": d1, "Length": length}
         return values, result.unit_cost
