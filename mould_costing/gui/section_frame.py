@@ -30,6 +30,8 @@ class SectionFrame(ttk.LabelFrame):
 
         self._build_ui(default_qty)
         self.chart_loader.on_reload(self.refresh_chart)
+        if self.chart_loader.is_loaded():
+            self.refresh_chart()
 
     def _build_ui(self, default_qty: int) -> None:
         inputs_frame = ttk.Frame(self)
@@ -108,23 +110,41 @@ class SectionFrame(ttk.LabelFrame):
             self._set_status(f"Invalid input: {exc}")
             return
 
+        if self._editing_index is not None:
+            item = dict(values)
+            item["Qty"] = qty
+            item["Unit Cost"] = round(unit_cost, 2)
+            item["Total"] = round(unit_cost * qty, 2)
+            idx = self._editing_index
+            self.items[idx] = item
+            iid = self.tree.get_children()[idx]
+            self.tree.item(iid, values=[item.get(c, "") for c in self.full_columns])
+            self._cancel_edit()
+            self._clear_status()
+            self._recalc()
+        else:
+            self.add_item(values, unit_cost, qty)
+
+    def add_item(self, values: dict, unit_cost: float, qty: int = 1) -> None:
+        """Programmatically append a line item, bypassing the normal input
+        fields/collect_line() -- e.g. a lump-sum total committed from elsewhere."""
         item = dict(values)
         item["Qty"] = qty
         item["Unit Cost"] = round(unit_cost, 2)
         item["Total"] = round(unit_cost * qty, 2)
-        row_values = [item.get(c, "") for c in self.full_columns]
-
-        if self._editing_index is not None:
-            idx = self._editing_index
-            self.items[idx] = item
-            iid = self.tree.get_children()[idx]
-            self.tree.item(iid, values=row_values)
-            self._cancel_edit()
-        else:
-            self.items.append(item)
-            self.tree.insert("", "end", values=row_values)
-
+        self.items.append(item)
+        self.tree.insert("", "end", values=[item.get(c, "") for c in self.full_columns])
         self._clear_status()
+        self._recalc()
+
+    def load_items(self, items: list[dict]) -> None:
+        """Replace current items with a previously-saved snapshot, bypassing
+        collect_line() entirely -- e.g. reopening a machining window to edit."""
+        self.items = [dict(item) for item in items]
+        for iid in self.tree.get_children():
+            self.tree.delete(iid)
+        for item in self.items:
+            self.tree.insert("", "end", values=[item.get(c, "") for c in self.full_columns])
         self._recalc()
 
     def _on_edit(self) -> None:

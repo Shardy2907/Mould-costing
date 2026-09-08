@@ -12,6 +12,7 @@ from mould_costing.gui.locating_ring_frame import LocatingRingFrame
 from mould_costing.gui.plate_frame import PlateFrame
 from mould_costing.gui.scrollable_frame import ScrollableFrame
 from mould_costing.gui.simple_rate_frame import SimpleRateFrame
+from mould_costing.gui.top_plate_machining_window import TopPlateMachiningWindow
 from mould_costing.gui.total_panel import TotalPanel
 
 
@@ -68,9 +69,12 @@ class App(tk.Tk):
             "Ejector Back Plate",
             "Bottom Plate",
         ]
-        self.plate_frames = [
-            PlateFrame(grid, title, self.chart_loader, self._on_change) for title in plate_titles
-        ]
+        self.plate_frames = []
+        for title in plate_titles:
+            factory = self._open_top_plate_machining if title == "Top Plate" else None
+            self.plate_frames.append(
+                PlateFrame(grid, title, self.chart_loader, self._on_change, machining_window_factory=factory)
+            )
 
         self.sections = [
             self.guide_pin_frame,
@@ -112,6 +116,9 @@ class App(tk.Tk):
             messagebox.showerror("Chart Load Error", str(exc))
             return
         config.save_last_chart_path(path)
+
+    def _open_top_plate_machining(self, plate_frame, on_ok):
+        return TopPlateMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
 
     def _on_chart_reload(self) -> None:
         self.total_panel.set_chart_status(self.chart_loader.path)

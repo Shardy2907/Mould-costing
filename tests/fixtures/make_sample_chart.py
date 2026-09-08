@@ -69,6 +69,12 @@ def build() -> None:
     for value in (16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 150):
         plate_thickness.append([value])
 
+    cavity_housing_drilling = wb.create_sheet("Cavityhousingdrilling")
+    cavity_housing_drilling.append(["Diameter", "Thickness", "Cost"])
+    for diameter in ("M10", "M12", "M16"):
+        cavity_housing_drilling.append([diameter, "24-30", 185])
+        cavity_housing_drilling.append([diameter, "38-48", 195])
+
     wb.save(OUTPUT_PATH)
     print(f"Sample chart written to {OUTPUT_PATH}")
 

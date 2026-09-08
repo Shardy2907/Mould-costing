@@ -6,6 +6,7 @@ from mould_costing.data.chart_loader import ChartLoader
 
 STOCK_ALLOWANCE_MM = 10
 DENSITY = 0.008
+MM_PER_INCH = 25.4
 
 
 def _round_up_thickness(chart_loader: ChartLoader, thickness_input: float) -> float:
@@ -39,3 +40,16 @@ def calculate(
         unit_cost=cost,
         extra={"Width": width, "Height": height, "Thickness": thickness, "Weight": weight},
     )
+
+
+def calculate_sg_cost(width: float, height: float, thickness: float, sg_rate: float) -> tuple[float, float]:
+    """Squaring/grinding cost: total surface area of the block (all 6 faces,
+    in sq. inches) times the SG Rate. width/height/thickness are the already
+    -adjusted values (post stock-allowance and standard-thickness rounding)."""
+    w = width / MM_PER_INCH
+    h = height / MM_PER_INCH
+    t = thickness / MM_PER_INCH
+
+    area = (w * h) * 2 + (w * t) * 2 + (t * h) * 2
+    cost = area * sg_rate
+    return area, cost

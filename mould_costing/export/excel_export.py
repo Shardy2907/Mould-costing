@@ -9,19 +9,26 @@ def export_summary(path: str, sections: list, grand_total: float) -> None:
     ws = wb.active
     ws.title = "Costing Summary"
 
-    all_columns: list[str] = ["Section"]
+    all_rows: list[dict] = []
     for section in sections:
-        for col in section.full_columns:
-            if col not in all_columns:
+        all_rows.extend(section.get_export_rows())
+
+    trailing_columns = ["Qty", "Unit Cost", "Total"]
+    all_columns: list[str] = ["Section"]
+    for row in all_rows:
+        for col in row:
+            if col.startswith("_"):
+                continue  # internal bookkeeping (e.g. a saved machining-window snapshot), not for export
+            if col not in all_columns and col not in trailing_columns:
                 all_columns.append(col)
+    all_columns.extend(trailing_columns)
 
     ws.append(all_columns)
     for cell in ws[1]:
         cell.font = Font(bold=True)
 
-    for section in sections:
-        for row in section.get_export_rows():
-            ws.append([row.get(col, "") for col in all_columns])
+    for row in all_rows:
+        ws.append([row.get(col, "") for col in all_columns])
 
     ws.append([])
     total_col_index = all_columns.index("Total") if "Total" in all_columns else 1

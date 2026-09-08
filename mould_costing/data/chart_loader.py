@@ -15,6 +15,7 @@ REQUIRED_SHEETS: dict[str, list[str]] = {
     "EjectorGuideBush": ["D1", "Length", "Rate"],
     "LocatingRing": ["D1", "thickness", "cost"],
     "PlateThickness": ["Thickness"],
+    "Cavityhousingdrilling": ["Diameter", "Thickness", "Cost"],
 }
 
 
