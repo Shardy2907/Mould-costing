@@ -9,6 +9,7 @@ from mould_costing.gui.guide_bush_frame import GuideBushFrame
 from mould_costing.gui.guide_pin_frame import GuidePinFrame
 from mould_costing.gui.hook_strip_frame import HookStripFrame
 from mould_costing.gui.locating_ring_frame import LocatingRingFrame
+from mould_costing.gui.plate_frame import PlateFrame
 from mould_costing.gui.scrollable_frame import ScrollableFrame
 from mould_costing.gui.simple_rate_frame import SimpleRateFrame
 from mould_costing.gui.total_panel import TotalPanel
@@ -21,6 +22,8 @@ class App(tk.Tk):
         self.geometry("1200x800")
 
         self.chart_loader = ChartLoader()
+
+        ttk.Style(self).configure("TLabelframe.Label", font=("Segoe UI", 11, "bold"))
 
         self._build_layout()
         self._try_load_last_chart()
@@ -55,6 +58,20 @@ class App(tk.Tk):
         )
         self.locating_ring_frame = LocatingRingFrame(grid, self.chart_loader, self._on_change)
 
+        plate_titles = [
+            "Top Plate",
+            "Cavity Plate",
+            "Punch Plate",
+            "Punch Back Plate",
+            "Spacer Blocks",
+            "Ejector Plate",
+            "Ejector Back Plate",
+            "Bottom Plate",
+        ]
+        self.plate_frames = [
+            PlateFrame(grid, title, self.chart_loader, self._on_change) for title in plate_titles
+        ]
+
         self.sections = [
             self.guide_pin_frame,
             self.guide_bush_frame,
@@ -65,6 +82,7 @@ class App(tk.Tk):
             self.ejector_guide_pin_frame,
             self.ejector_guide_bush_frame,
             self.locating_ring_frame,
+            *self.plate_frames,
         ]
 
         for index, section in enumerate(self.sections):

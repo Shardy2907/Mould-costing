@@ -64,6 +64,11 @@ def build() -> None:
     locating_ring.append(["D1", "thickness", "cost"])
     locating_ring.append([110, 15, 600.0])
 
+    plate_thickness = wb.create_sheet("PlateThickness")
+    plate_thickness.append(["Thickness"])
+    for value in (16, 20, 25, 32, 40, 50, 63, 80, 100, 125, 150):
+        plate_thickness.append([value])
+
     wb.save(OUTPUT_PATH)
     print(f"Sample chart written to {OUTPUT_PATH}")
 
