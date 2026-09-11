@@ -12,6 +12,7 @@ from mould_costing.gui.locating_ring_frame import LocatingRingFrame
 from mould_costing.gui.plate_frame import PlateFrame
 from mould_costing.gui.scrollable_frame import ScrollableFrame
 from mould_costing.gui.simple_rate_frame import SimpleRateFrame
+from mould_costing.gui.spacer_blocks_machining_window import SpacerBlocksMachiningWindow
 from mould_costing.gui.top_plate_machining_window import TopPlateMachiningWindow
 from mould_costing.gui.total_panel import TotalPanel
 
@@ -24,13 +25,15 @@ class App(tk.Tk):
 
         self.chart_loader = ChartLoader()
 
-        ttk.Style(self).configure("TLabelframe.Label", font=("Segoe UI", 11, "bold"))
+        ttk.Style(self).configure("TLabelframe.Label",
+                                  font=("Segoe UI", 11, "bold"))
 
         self._build_layout()
         self._try_load_last_chart()
 
     def _build_layout(self) -> None:
-        self.total_panel = TotalPanel(self, self._on_load_chart, self._on_export, self._on_clear_all)
+        self.total_panel = TotalPanel(
+            self, self._on_load_chart, self._on_export, self._on_clear_all)
         self.total_panel.pack(side="top", fill="x", padx=6, pady=6)
 
         scroll_area = ScrollableFrame(self)
@@ -39,7 +42,8 @@ class App(tk.Tk):
         for col in range(3):
             grid.columnconfigure(col, weight=1, uniform="col")
 
-        self.guide_pin_frame = GuidePinFrame(grid, self.chart_loader, self._on_change)
+        self.guide_pin_frame = GuidePinFrame(
+            grid, self.chart_loader, self._on_change)
         self.guide_bush_frame = GuideBushFrame(
             grid, self.chart_loader, self._on_change, peer_side_var=self.guide_pin_frame.side_var
         )
@@ -50,14 +54,16 @@ class App(tk.Tk):
         self.dowelling_sleeve_frame = SimpleRateFrame(
             grid, "Dowelling Sleeve", "DowellingSleeve", self.chart_loader, self._on_change
         )
-        self.hook_strip_frame = HookStripFrame(grid, self.chart_loader, self._on_change)
+        self.hook_strip_frame = HookStripFrame(
+            grid, self.chart_loader, self._on_change)
         self.ejector_guide_pin_frame = SimpleRateFrame(
             grid, "Ejector Guide Pin", "EjectorGuidePin", self.chart_loader, self._on_change
         )
         self.ejector_guide_bush_frame = SimpleRateFrame(
             grid, "Ejector Guide Bush", "EjectorGuideBush", self.chart_loader, self._on_change
         )
-        self.locating_ring_frame = LocatingRingFrame(grid, self.chart_loader, self._on_change)
+        self.locating_ring_frame = LocatingRingFrame(
+            grid, self.chart_loader, self._on_change)
 
         plate_titles = [
             "Top Plate",
@@ -71,9 +77,15 @@ class App(tk.Tk):
         ]
         self.plate_frames = []
         for title in plate_titles:
-            factory = self._open_top_plate_machining if title == "Top Plate" else None
+            if title == "Top Plate":
+                factory = self._open_top_plate_machining
+            elif title == "Spacer Blocks":
+                factory = self._open_spacer_blocks_machining
+            else:
+                factory = None
             self.plate_frames.append(
-                PlateFrame(grid, title, self.chart_loader, self._on_change, machining_window_factory=factory)
+                PlateFrame(grid, title, self.chart_loader,
+                           self._on_change, machining_window_factory=factory)
             )
 
         self.sections = [
@@ -120,6 +132,9 @@ class App(tk.Tk):
     def _open_top_plate_machining(self, plate_frame, on_ok):
         return TopPlateMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
 
+    def _open_spacer_blocks_machining(self, plate_frame, on_ok):
+        return SpacerBlocksMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
+
     def _on_chart_reload(self) -> None:
         self.total_panel.set_chart_status(self.chart_loader.path)
 
@@ -137,7 +152,8 @@ class App(tk.Tk):
 
     def _on_export(self) -> None:
         if not any(section.items for section in self.sections):
-            messagebox.showinfo("Export Summary", "No line items to export yet.")
+            messagebox.showinfo(
+                "Export Summary", "No line items to export yet.")
             return
 
         path = filedialog.asksaveasfilename(
@@ -152,6 +168,7 @@ class App(tk.Tk):
         try:
             export_summary(path, self.sections, grand_total)
         except OSError as exc:
-            messagebox.showerror("Export Error", f"Could not save file:\n{exc}")
+            messagebox.showerror(
+                "Export Error", f"Could not save file:\n{exc}")
             return
         messagebox.showinfo("Export Summary", f"Summary exported to:\n{path}")
