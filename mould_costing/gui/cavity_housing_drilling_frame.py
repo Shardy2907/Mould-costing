@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from mould_costing.calculators import cavity_housing_drilling
+from mould_costing.calculators import bolt_standard_cost
 from mould_costing.gui.section_frame import SectionFrame
 
 
@@ -15,9 +15,11 @@ class CavityHousingDrillingFrame(SectionFrame):
         chart_loader,
         on_change,
         plate_thickness_var: tk.StringVar,
+        sheet_name: str = "Cavityhousingdrilling",
         title: str = "Cavity Housing Drilling",
     ):
         self.plate_thickness_var = plate_thickness_var
+        self.sheet_name = sheet_name
         super().__init__(
             parent,
             title,
@@ -49,7 +51,7 @@ class CavityHousingDrillingFrame(SectionFrame):
         self.thickness_display_var.set(f"{value} mm" if value else "(not entered yet)")
 
     def refresh_chart(self) -> None:
-        diameters = self.chart_loader.unique_values("Cavityhousingdrilling", "Diameter", [])
+        diameters = self.chart_loader.unique_values(self.sheet_name, "Diameter", [])
         self.diameter_combo["values"] = diameters
         if self.diameter_var.get() not in diameters:
             self.diameter_var.set(diameters[0] if diameters else "")
@@ -70,6 +72,6 @@ class CavityHousingDrillingFrame(SectionFrame):
         except ValueError:
             raise ValueError("Top Plate Thickness must be a number.")
 
-        result = cavity_housing_drilling.calculate(self.chart_loader, diameter, thickness)
+        result = bolt_standard_cost.calculate(self.chart_loader, self.sheet_name, diameter, thickness)
         values = {"Diameter": diameter, "Thickness": result.extra["Bracket"]}
         return values, result.unit_cost

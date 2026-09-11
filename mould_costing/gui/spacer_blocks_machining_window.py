@@ -9,7 +9,7 @@ class SpacerBlocksMachiningWindow(tk.Toplevel):
     """Configure machining features for Spacer Blocks; clicking OK commits the total
     as a single line item on the Spacer Blocks section and closes this window."""
 
-    def __init__(self, parent, chart_loader, spacer_blocks_frame, on_ok):
+    def __init__(self, parent, chart_loader, spacer_blocks_frame, on_ok, bolt_diameter_var):
         super().__init__(parent)
         self.title("Spacer Blocks - Machining")
         self.geometry("540x760")
@@ -27,6 +27,12 @@ class SpacerBlocksMachiningWindow(tk.Toplevel):
         container = scroll_area.inner
         container.columnconfigure(0, weight=1)
 
+        try:
+            spacer_qty = int(spacer_blocks_frame.qty_var.get())
+        except ValueError:
+            spacer_qty = 1
+        bolt_default_qty = spacer_qty * 2 if spacer_qty > 0 else 2
+
         prefix = "Spacer Blocks - "
         self.sub_frames = [
             SpacerBlockBoltFrame(
@@ -34,7 +40,9 @@ class SpacerBlocksMachiningWindow(tk.Toplevel):
                 chart_loader,
                 self._recalc,
                 spacer_blocks_frame.thickness_var,
+                bolt_diameter_var,
                 title=prefix + "Clamping Bolt Machining",
+                default_qty=bolt_default_qty,
             ),
         ]
         for index, frame in enumerate(self.sub_frames):

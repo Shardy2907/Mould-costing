@@ -52,7 +52,7 @@ class App(tk.Tk):
         )
         self.bolt_frame = BoltFrame(grid, self.chart_loader, self._on_change)
         self.dowelling_sleeve_frame = SimpleRateFrame(
-            grid, "Dowelling Sleeve", "DowellingSleeve", self.chart_loader, self._on_change
+            grid, "Dowelling Sleeve", "DowellingSleeve", self.chart_loader, self._on_change, d1_column="Outer dia"
         )
         self.hook_strip_frame = HookStripFrame(
             grid, self.chart_loader, self._on_change)
@@ -64,6 +64,8 @@ class App(tk.Tk):
         )
         self.locating_ring_frame = LocatingRingFrame(
             grid, self.chart_loader, self._on_change)
+
+        self.shared_bolt_diameter_var = tk.StringVar()
 
         plate_titles = [
             "Top Plate",
@@ -77,15 +79,26 @@ class App(tk.Tk):
         ]
         self.plate_frames = []
         for title in plate_titles:
+            factory = None
+            bolt_diameter_var = None
+            default_qty = 1
             if title == "Top Plate":
                 factory = self._open_top_plate_machining
             elif title == "Spacer Blocks":
                 factory = self._open_spacer_blocks_machining
-            else:
-                factory = None
+                default_qty = 2
+            elif title == "Bottom Plate":
+                bolt_diameter_var = self.shared_bolt_diameter_var
             self.plate_frames.append(
-                PlateFrame(grid, title, self.chart_loader,
-                           self._on_change, machining_window_factory=factory)
+                PlateFrame(
+                    grid,
+                    title,
+                    self.chart_loader,
+                    self._on_change,
+                    machining_window_factory=factory,
+                    bolt_diameter_var=bolt_diameter_var,
+                    default_qty=default_qty,
+                )
             )
 
         self.sections = [
@@ -133,7 +146,9 @@ class App(tk.Tk):
         return TopPlateMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
 
     def _open_spacer_blocks_machining(self, plate_frame, on_ok):
-        return SpacerBlocksMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
+        return SpacerBlocksMachiningWindow(
+            self, self.chart_loader, plate_frame, on_ok, self.shared_bolt_diameter_var
+        )
 
     def _on_chart_reload(self) -> None:
         self.total_panel.set_chart_status(self.chart_loader.path)

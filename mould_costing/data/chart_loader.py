@@ -9,13 +9,15 @@ REQUIRED_SHEETS: dict[str, list[str]] = {
     "GuideBush": ["Type", "Diameter C", "Diameter D", "Diameter E", "Length", "Total Cost"],
     "ReturnPin": ["D1", "Length", "Rate"],
     "Bolts": ["D1", "Length", "Rate"],
-    "DowellingSleeve": ["D1", "Length", "Rate"],
+    "DowellingSleeve": ["Outer dia", "Length", "Rate"],
     "HookStrip": ["W", "T", "Length", "Rate"],
     "EjectorGuidePin": ["D1", "Length", "Rate"],
     "EjectorGuideBush": ["D1", "Length", "Rate"],
     "LocatingRing": ["D1", "thickness", "cost"],
     "PlateThickness": ["Thickness"],
     "Cavityhousingdrilling": ["Diameter", "Thickness", "Cost"],
+    "BoltStandards": ["Bolt Dia", "Clearance hole dia", "Counter bore dia", "Counter bore depth"],
+    "SpacerBlocksCosting": ["Thickness", "Cost"],
 }
 
 

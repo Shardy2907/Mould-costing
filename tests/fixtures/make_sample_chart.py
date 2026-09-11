@@ -41,7 +41,7 @@ def build() -> None:
     bolts.append(["M10", 30, 10.0])
 
     dowelling_sleeve = wb.create_sheet("DowellingSleeve")
-    dowelling_sleeve.append(["D1", "Length", "Rate"])
+    dowelling_sleeve.append(["Outer dia", "Length", "Rate"])
     dowelling_sleeve.append([8, 20, 15.0])
     dowelling_sleeve.append([10, 25, 18.0])
 
@@ -74,6 +74,20 @@ def build() -> None:
     for diameter in ("M10", "M12", "M16"):
         cavity_housing_drilling.append([diameter, "24-30", 185])
         cavity_housing_drilling.append([diameter, "38-48", 195])
+
+    spacer_blocks_costing = wb.create_sheet("SpacerBlocksCosting")
+    spacer_blocks_costing.append(["Thickness", "Cost"])
+    spacer_blocks_costing.append(["24-30", 570])
+    spacer_blocks_costing.append(["30-48", 580])
+    spacer_blocks_costing.append(["48-60", 590])
+    spacer_blocks_costing.append(["60-80", 610])
+    spacer_blocks_costing.append(["80-100", 630])
+
+    bolt_standards = wb.create_sheet("BoltStandards")
+    bolt_standards.append(["Bolt Dia", "Clearance hole dia", "Counter bore dia", "Counter bore depth"])
+    bolt_standards.append(["M10", 11, 18, 11])
+    bolt_standards.append(["M12", 14, 20, 13])
+    bolt_standards.append(["M16", 18, 26, 18])
 
     wb.save(OUTPUT_PATH)
     print(f"Sample chart written to {OUTPUT_PATH}")

@@ -19,8 +19,10 @@ class SimpleRateFrame(SectionFrame):
         on_change,
         fixed_qty: int | None = None,
         default_qty: int = 1,
+        d1_column: str = "D1",
     ):
         self.sheet_name = sheet_name
+        self.d1_column = d1_column
         super().__init__(
             parent,
             title,
@@ -48,7 +50,7 @@ class SimpleRateFrame(SectionFrame):
         self.d1_var.trace_add("write", lambda *_args: self._refresh_lengths())
 
     def refresh_chart(self) -> None:
-        d1_values = self.chart_loader.unique_values(self.sheet_name, "D1", [])
+        d1_values = self.chart_loader.unique_values(self.sheet_name, self.d1_column, [])
         self.d1_combo["values"] = d1_values
         if self.d1_var.get() not in d1_values:
             self.d1_var.set(d1_values[0] if d1_values else "")
@@ -57,7 +59,7 @@ class SimpleRateFrame(SectionFrame):
 
     def _refresh_lengths(self) -> None:
         lengths = self.chart_loader.filtered_unique_values(
-            self.sheet_name, "Length", {"D1": self.d1_var.get()}, []
+            self.sheet_name, "Length", {self.d1_column: self.d1_var.get()}, []
         )
         self.length_combo["values"] = lengths
         if self.length_var.get() not in lengths:
@@ -74,6 +76,8 @@ class SimpleRateFrame(SectionFrame):
         d1 = float(self.d1_var.get())
         length = float(self.length_var.get())
 
-        result = rate_lookup.calculate(self.chart_loader, self.sheet_name, self.title, D1=d1, Length=length)
+        result = rate_lookup.calculate(
+            self.chart_loader, self.sheet_name, self.title, **{self.d1_column: d1, "Length": length}
+        )
         values = {"D1": d1, "Length": length}
         return values, result.unit_cost

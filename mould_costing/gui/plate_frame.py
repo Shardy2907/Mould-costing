@@ -11,16 +11,27 @@ class PlateFrame(SectionFrame):
     """Generic material-cost section reused for all 8 plate types (Top Plate,
     Cavity Plate, Punch Plate, ... just pass a different title)."""
 
-    def __init__(self, parent, title: str, chart_loader, on_change, machining_window_factory=None):
+    def __init__(
+        self,
+        parent,
+        title: str,
+        chart_loader,
+        on_change,
+        machining_window_factory=None,
+        bolt_diameter_var: tk.StringVar | None = None,
+        default_qty: int = 1,
+    ):
         self.machining_window_factory = machining_window_factory
         self.machining_window = None
         self._machining_edit_index = None
+        self.bolt_diameter_var = bolt_diameter_var
         super().__init__(
             parent,
             title,
             ["Material", "Width", "Height", "Thickness", "Weight (kg)", "Rate"],
             chart_loader,
             on_change,
+            default_qty=default_qty,
         )
 
     def _build_ui(self, default_qty: int) -> None:
@@ -132,6 +143,21 @@ class PlateFrame(SectionFrame):
 
         ttk.Label(frame, text="SG Rate:").grid(row=5, column=0, sticky="w")
         ttk.Entry(frame, textvariable=self.sg_rate_var, width=10).grid(row=5, column=1, sticky="w")
+
+        if self.bolt_diameter_var is not None:
+            ttk.Label(frame, text="Bolt Diameter:").grid(row=6, column=0, sticky="w")
+            self.bolt_diameter_combo = ttk.Combobox(
+                frame, textvariable=self.bolt_diameter_var, values=[], width=10
+            )
+            self.bolt_diameter_combo.grid(row=6, column=1, sticky="w")
+
+    def refresh_chart(self) -> None:
+        if self.bolt_diameter_var is None:
+            return
+        bolts = self.chart_loader.unique_values("BoltStandards", "Bolt Dia", [])
+        self.bolt_diameter_combo["values"] = bolts
+        if not self.bolt_diameter_var.get() and bolts:
+            self.bolt_diameter_var.set(bolts[0])
 
     def populate_inputs(self, item: dict) -> None:
         if "Width" not in item:
