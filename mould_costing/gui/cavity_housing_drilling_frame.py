@@ -6,8 +6,8 @@ from mould_costing.gui.section_frame import SectionFrame
 
 
 class CavityHousingDrillingFrame(SectionFrame):
-    """Diameter is picked here; Thickness is read live from the Top Plate
-    section's own Thickness input, not re-entered."""
+    """Diameter is picked here; Thickness is read live from the referenced
+    plate section's own Thickness input, not re-entered."""
 
     def __init__(
         self,
@@ -17,16 +17,19 @@ class CavityHousingDrillingFrame(SectionFrame):
         plate_thickness_var: tk.StringVar,
         sheet_name: str = "Cavityhousingdrilling",
         title: str = "Cavity Housing Drilling",
+        plate_label: str = "Top Plate",
+        default_qty: int = 4,
     ):
         self.plate_thickness_var = plate_thickness_var
         self.sheet_name = sheet_name
+        self.plate_label = plate_label
         super().__init__(
             parent,
             title,
             ["Diameter", "Thickness"],
             chart_loader,
             on_change,
-            default_qty=4,
+            default_qty=default_qty,
         )
 
     def build_inputs(self, frame: ttk.Frame) -> None:
@@ -39,7 +42,7 @@ class CavityHousingDrillingFrame(SectionFrame):
         )
         self.diameter_combo.grid(row=0, column=1, sticky="w")
 
-        ttk.Label(frame, text="Top Plate Thickness:").grid(row=1, column=0, sticky="w")
+        ttk.Label(frame, text=f"{self.plate_label} Thickness:").grid(row=1, column=0, sticky="w")
         ttk.Label(frame, textvariable=self.thickness_display_var, font=("Segoe UI", 9, "bold")).grid(
             row=1, column=1, sticky="w"
         )
@@ -66,11 +69,11 @@ class CavityHousingDrillingFrame(SectionFrame):
 
         thickness_str = self.plate_thickness_var.get()
         if not thickness_str:
-            raise ValueError("Enter a Thickness in the Top Plate section first.")
+            raise ValueError(f"Enter a Thickness in the {self.plate_label} section first.")
         try:
             thickness = float(thickness_str)
         except ValueError:
-            raise ValueError("Top Plate Thickness must be a number.")
+            raise ValueError(f"{self.plate_label} Thickness must be a number.")
 
         result = bolt_standard_cost.calculate(self.chart_loader, self.sheet_name, diameter, thickness)
         values = {"Diameter": diameter, "Thickness": result.extra["Bracket"]}

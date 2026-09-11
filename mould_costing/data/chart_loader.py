@@ -18,6 +18,8 @@ REQUIRED_SHEETS: dict[str, list[str]] = {
     "Cavityhousingdrilling": ["Diameter", "Thickness", "Cost"],
     "BoltStandards": ["Bolt Dia", "Clearance hole dia", "Counter bore dia", "Counter bore depth"],
     "SpacerBlocksCosting": ["Thickness", "Cost"],
+    "PunchHousingDrilling": ["Diameter", "Thickness", "Cost"],
+    "PunchBackPlate": ["Diameter", "Thickness", "Cost"],
 }
 
 

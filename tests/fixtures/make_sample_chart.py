@@ -83,6 +83,20 @@ def build() -> None:
     spacer_blocks_costing.append(["60-80", 610])
     spacer_blocks_costing.append(["80-100", 630])
 
+    punch_housing_drilling = wb.create_sheet("PunchHousingDrilling")
+    punch_housing_drilling.append(["Diameter", "Thickness", "Cost"])
+    for diameter in ("M10", "M12", "M16"):
+        punch_housing_drilling.append([diameter, "24-30", 970])
+        punch_housing_drilling.append([diameter, "38-48", 1030])
+        punch_housing_drilling.append([diameter, "48-60", 1090])
+
+    punch_back_plate = wb.create_sheet("PunchBackPlate")
+    punch_back_plate.append(["Diameter", "Thickness", "Cost"])
+    for diameter in ("M10", "M12", "M16"):
+        punch_back_plate.append([diameter, "24-30", 950])
+        punch_back_plate.append([diameter, "38-48", 980])
+        punch_back_plate.append([diameter, "48-60", 1010])
+
     bolt_standards = wb.create_sheet("BoltStandards")
     bolt_standards.append(["Bolt Dia", "Clearance hole dia", "Counter bore dia", "Counter bore depth"])
     bolt_standards.append(["M10", 11, 18, 11])

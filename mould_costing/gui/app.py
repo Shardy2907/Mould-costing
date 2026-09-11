@@ -5,11 +5,13 @@ from mould_costing import config
 from mould_costing.data.chart_loader import ChartLoader, ChartLoadError
 from mould_costing.export.excel_export import export_summary
 from mould_costing.gui.bolt_frame import BoltFrame
+from mould_costing.gui.bottom_plate_machining_window import BottomPlateMachiningWindow
 from mould_costing.gui.guide_bush_frame import GuideBushFrame
 from mould_costing.gui.guide_pin_frame import GuidePinFrame
 from mould_costing.gui.hook_strip_frame import HookStripFrame
 from mould_costing.gui.locating_ring_frame import LocatingRingFrame
 from mould_costing.gui.plate_frame import PlateFrame
+from mould_costing.gui.punch_back_plate_machining_window import PunchBackPlateMachiningWindow
 from mould_costing.gui.scrollable_frame import ScrollableFrame
 from mould_costing.gui.simple_rate_frame import SimpleRateFrame
 from mould_costing.gui.spacer_blocks_machining_window import SpacerBlocksMachiningWindow
@@ -80,7 +82,6 @@ class App(tk.Tk):
         self.plate_frames = []
         for title in plate_titles:
             factory = None
-            bolt_diameter_var = None
             default_qty = 1
             if title == "Top Plate":
                 factory = self._open_top_plate_machining
@@ -88,7 +89,9 @@ class App(tk.Tk):
                 factory = self._open_spacer_blocks_machining
                 default_qty = 2
             elif title == "Bottom Plate":
-                bolt_diameter_var = self.shared_bolt_diameter_var
+                factory = self._open_bottom_plate_machining
+            elif title == "Punch Back Plate":
+                factory = self._open_punch_back_plate_machining
             self.plate_frames.append(
                 PlateFrame(
                     grid,
@@ -96,7 +99,6 @@ class App(tk.Tk):
                     self.chart_loader,
                     self._on_change,
                     machining_window_factory=factory,
-                    bolt_diameter_var=bolt_diameter_var,
                     default_qty=default_qty,
                 )
             )
@@ -149,6 +151,14 @@ class App(tk.Tk):
         return SpacerBlocksMachiningWindow(
             self, self.chart_loader, plate_frame, on_ok, self.shared_bolt_diameter_var
         )
+
+    def _open_bottom_plate_machining(self, plate_frame, on_ok):
+        return BottomPlateMachiningWindow(
+            self, self.chart_loader, plate_frame, on_ok, self.shared_bolt_diameter_var
+        )
+
+    def _open_punch_back_plate_machining(self, plate_frame, on_ok):
+        return PunchBackPlateMachiningWindow(self, self.chart_loader, plate_frame, on_ok)
 
     def _on_chart_reload(self) -> None:
         self.total_panel.set_chart_status(self.chart_loader.path)
